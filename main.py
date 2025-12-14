@@ -18,7 +18,6 @@ class City:
 # --- MADDE 1: Parser Function ---
 def parse_tsp_file(filename):
     cities = []
-    # Dosya kontrolü ekleyelim ki 2. dosya yoksa kod patlamasın
     if not os.path.exists(filename):
         print(f"WARNING: File '{filename}' not found.")
         return []
@@ -62,7 +61,6 @@ def create_random_solution(cities):
     Madde 4: Create a random one based on file.
     Uses random.sample to avoid repetition (Madde 4.a).
     """
-    # random.sample fonksiyonu tekrarsız (unique) seçim yapar.
     random_solution = random.sample(cities, len(cities))
     return random_solution
 
@@ -81,8 +79,7 @@ def calculate_fitness(solution):
 def info(solution):
     score = calculate_fitness(solution)
 
-    # 2. Şehir ID'lerini yan yana string haline getir
-    # Örnek çıktı: "1 15 2 4 9 ..."
+    #converter to string
     route_ids = [str(city.id) for city in solution]
     route_str = " ".join(route_ids)
 
@@ -100,25 +97,24 @@ def solve_greedy(cities, start_index=0):
     # 1. Orijinal listeyi korumak için kopyasını al
     unvisited = cities.copy()
 
-    # 2. Başlangıç şehrini seç
+    # 2. choose your start city
     if start_index >= len(unvisited): start_index = 0
     current_city = unvisited.pop(start_index)
     solution = [current_city]
 
-    # 3. Tüm şehirler bitene kadar dön
+    # 3. Turn around until all the cities are gone.
     while unvisited:
         closest_city = None
         min_distance = float("inf")
 
-        # --- ADIM A: Sadece EN YAKINI BUL (Döngü içinde işlem yapma) ---
+        # --- ADIM A:Just find the NEAREST one. ---
         for candidate in unvisited:
             dist = calculate_distance(current_city, candidate)
             if dist < min_distance:
                 min_distance = dist
                 closest_city = candidate
 
-        # --- ADIM B: Bulduktan sonra GİT ve LİSTEDEN SİL ---
-        # (Bu kısım for döngüsünün DIŞINA (sola) alındı!)
+        # --- ADIM B: Once you find it, GO and DELETE IT FROM THE LIST. ---
         if closest_city:
             current_city = closest_city
             solution.append(current_city)
@@ -150,26 +146,25 @@ if __name__ == "__main__":
             for file_name in files_to_test:
                 print(f"\n{'-' * 10} TEST FİLE: {file_name} {'-' * 10}")
 
-                # 1. PARSER TESTİ
+                # 1. PARSER TEST
                 sehirler = parse_tsp_file(file_name)
 
                 if not sehirler:
                     print(f"-> This file is being passed because {file_name} could not be loaded.")
                     continue
 
-                # 2. MESAFE FONKSİYONU TESTİ (Madde 2)
+                # 2. Distance Func TEST 2.article
                 if len(sehirler) >= 2:
                     c1 = sehirler[0]
                     c2 = sehirler[1]
                     dist = calculate_distance(c1, c2)
                     print(f"Article 2 (Distance Test): Distance between City {c1.id} and City {c2.id} = {dist:.4f}")
 
-                # 3. RASTGELE ÇÖZÜM VE TEKRAR KONTROLÜ (Madde 4 ve 4.a)
+                # 3. RANDOM SOLUTION AND REPEAT CHECK (article 4 ve 4.a)
                 random_sol = create_random_solution(sehirler)
                 ids = [c.id for c in random_sol][:5]
                 print(f"Item 4 (Random Solution - Top 5): {ids}")
 
-                # Madde 4.a KONTROLÜ (Tekrar var mı? Tüm şehirler dahil mi?)
                 unique_check = set(city.id for city in random_sol)
                 if len(random_sol) == len(sehirler) and len(unique_check) == len(sehirler):
                     print(
@@ -177,44 +172,73 @@ if __name__ == "__main__":
                 else:
                     print("Article 4.a (Verification): ERROR! Missing city or repeat.")
 
-                # 4. FITNESS HESAPLAMA
+                # 4. FITNESS calculate
                 fitness = calculate_fitness(random_sol)
                 print(f"Fitness: {fitness:.4f}")
 
             print("\n=== ALL TESTS ARE COMPLETED ===")
 
         elif choice == "2":
-            for file_name in files_to_test:
-                print(f"\n File: {file_name}")
-                sehirler = parse_tsp_file(file_name)
+            while True:
+                print("1. (5. 6.)fitness and info functions")
+                print("2. (7.)greedy vs random")
+                print("3. (8.)Best Spawm point")
+                print("0. Return to Main Menu")
+                sub_choice = input("Part 2 please select an option: ")
+                if sub_choice == "1":
+                    print("\n[TEST: INFO & FITNESS]")
+                    for file_name in files_to_test:
+                        print(f"\nDosya: {file_name}")
+                        sehirler = parse_tsp_file(file_name)
+                        if sehirler:
+                            rand_sol = create_random_solution(sehirler)
+                            # info func article 6
+                            info(rand_sol)
 
-                if sehirler:
-                    # 1. RANDOM TEST (Madde 6: Info)
-                    print("\n[PART 2: Random Solution]")
-                    random_sol = create_random_solution(sehirler)
-                    print(f"Şehir Sayısı: {len(sehirler)}")
-                    info(random_sol)
+                    # ---  GREEDY vs RANDOM (art 7) ---
+                elif sub_choice == "2":
+                    print("\n[TEST: GREEDY vs RANDOM]")
+                    for file_name in files_to_test:
+                        print(f"\nFile: {file_name}")
+                        sehirler = parse_tsp_file(file_name)
+                        if sehirler:
+                            # Random Score
+                            r_sol = create_random_solution(sehirler)
+                            r_score = calculate_fitness(r_sol)
 
-                    # 2. GREEDY TEST (Madde 7: Greedy vs Random)
-                    print("\n[PART 3: Greedy vs Random]")
+                            #1 Greedy Score
+                            g_sol = solve_greedy(sehirler, start_index=0)
+                            g_score = calculate_fitness(g_sol)
 
-                    score_rand = calculate_fitness(random_sol)
+                            print(f"Random Skor: {r_score:.4f}")
+                            print(f"Greedy Skor: {g_score:.4f}")
 
-                    greedy_sol = solve_greedy(sehirler, start_index=0)
-                    score_greedy = calculate_fitness(greedy_sol)
+                            if g_score < r_score:
+                                print(f"-> Greedy algorithm {r_score - g_score:.2f} score is better!")
 
-                    print(f"(Random) Score: {score_rand:.4f}")
-                    print(f"(Greedy) Score: {score_greedy:.4f}")
+                    # --- ITERATIVE GREEDY (MADDE 8) ---
+                elif sub_choice == "3":
+                    print("\n[TEST: THE BEST STARTING POINT (ARTICLE 8)]")
+                    for file_name in files_to_test:
+                        print(f"\n>>> Fıle scanned: {file_name}")
+                        sehirler = parse_tsp_file(file_name)
+                        if not sehirler: continue
 
-                    if score_greedy < score_rand:
-                        diff = score_rand - score_greedy
-                        print(f"BAŞARILI: Greedy algoritması {diff:.2f} puan daha iyi!")
-                    else:
-                        print("Random daha iyi çıktı (Çok nadir).")
+                        best_score = float('inf')
+                        best_start_node = -1
 
-                    print("-" * 30)
-                else:
-                    print("HATA: Dosya yüklenemedi.")
+                        for i in range(len(sehirler)):
+                            current_greedy = solve_greedy(sehirler, start_index=i)
+                            score = calculate_fitness(current_greedy)
+                            print(f"Start Node {i}: {score:.2f} {info(current_greedy)}:")
+
+                            if score < best_score:
+                                best_score = score
+                                best_start_node = i
+
+                        print(f"\n*** Result ({file_name}) ***")
+                        print(f"Best Starting City Index: {best_start_node}")
+                        print(f"Best Score: {best_score:.4f}")
 
         elif choice == "0":
             print("Exiting the program ... Have a nice day")
