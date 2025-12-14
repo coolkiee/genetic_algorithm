@@ -81,43 +81,63 @@ def calculate_fitness(solution):
 if __name__ == "__main__":
 
     # Madde 1.c: Test on at least two different files
-    # Buraya test edilecek dosyaları yazıyoruz.
     files_to_test = ["berlin11_modified.tsp", "berlin52.tsp"]
 
-    print("=== PROJECT CONTROL AND TESTING PHASE ===")
+    while True:
+        print("\n" + "=" * 50)
+        print("          Project Control MENU")
+        print("=" * 50)
+        print("1. Part 1")
+        print("2. Part 2")
+        print("0. Exit")
+        print("=" * 50)
 
-    for file_name in files_to_test:
-        print(f"\n{'-' * 10} TEST FİLE: {file_name} {'-' * 10}")
+        choice = input("please select an option: ")
+        if choice =="1":
+            for file_name in files_to_test:
+                print(f"\n{'-' * 10} TEST FİLE: {file_name} {'-' * 10}")
 
-        # 1. PARSER TESTİ
-        sehirler = parse_tsp_file(file_name)
+                # 1. PARSER TESTİ
+                sehirler = parse_tsp_file(file_name)
 
-        if not sehirler:
-            print(f"-> This file is being passed because {file_name} could not be loaded.")
-            continue
+                if not sehirler:
+                    print(f"-> This file is being passed because {file_name} could not be loaded.")
+                    continue
 
-        # 2. MESAFE FONKSİYONU TESTİ (Madde 2)
-        if len(sehirler) >= 2:
-            c1 = sehirler[0]
-            c2 = sehirler[1]
-            dist = calculate_distance(c1, c2)
-            print(f"Article 2 (Distance Test): Distance between City {c1.id} and City {c2.id} = {dist:.4f}")
+                # 2. MESAFE FONKSİYONU TESTİ (Madde 2)
+                if len(sehirler) >= 2:
+                    c1 = sehirler[0]
+                    c2 = sehirler[1]
+                    dist = calculate_distance(c1, c2)
+                    print(f"Article 2 (Distance Test): Distance between City {c1.id} and City {c2.id} = {dist:.4f}")
 
-        # 3. RASTGELE ÇÖZÜM VE TEKRAR KONTROLÜ (Madde 4 ve 4.a)
-        random_sol = create_random_solution(sehirler)
-        print(f"Item 4 (Random Solution - Top 5): {random_sol[:5]}")
+                # 3. RASTGELE ÇÖZÜM VE TEKRAR KONTROLÜ (Madde 4 ve 4.a)
+                random_sol = create_random_solution(sehirler)
+                print(f"Item 4 (Random Solution - Top 5): {random_sol[:5]}")
 
-        # Madde 4.a KONTROLÜ (Tekrar var mı? Tüm şehirler dahil mi?)
-        unique_check = set(city.id for city in random_sol)
-        original_check = set(city.id for city in sehirler)
+                # Madde 4.a KONTROLÜ (Tekrar var mı? Tüm şehirler dahil mi?)
+                unique_check = set(city.id for city in random_sol)
+                original_check = set(city.id for city in sehirler)
 
-        if len(random_sol) == len(sehirler) and unique_check == original_check:
-            print("Article 4.a (Verification): PASSED. There is no repetition and all cities are available in the list.")
+                if len(random_sol) == len(sehirler) and unique_check == original_check:
+                    print(
+                        "Article 4.a (Verification): PASSED. There is no repetition and all cities are available in the list.")
+                else:
+                    print("Article 4.a (Verification): ERROR! Missing city or repeat.")
+
+                # 4. FITNESS HESAPLAMA
+                fitness = calculate_fitness(random_sol)
+                print(f"Fitness: {fitness:.4f}")
+
+            print("\n=== ALL TESTS ARE COMPLETED ===")
+
+        elif choice == "2":
+            print("part2")
+
+        elif choice == "0":
+            print("Exiting the program ... Have a nice day")
+            break
         else:
-            print("Article 4.a (Verification): ERROR! Missing city or repeat.")
+            print("!!! İnvalid selection")
 
-        # 4. FITNESS HESAPLAMA
-        fitness = calculate_fitness(random_sol)
-        print(f"Fitness: {fitness:.4f}")
 
-    print("\n=== ALL TESTS ARE COMPLETED ===")
