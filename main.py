@@ -268,40 +268,44 @@ def create_new_generation(previous_population,mutation_rate=0.1,crossover_rate=0
         new_population.append(child)
     return new_population
 
-def solve_tsp_genetic(cities,pop_size=50 , iterations =1000,greedy_count=5):
 
-    #1.Create Initial Population
-    current_pop = create_initial_population(cities , pop_size,greedy_count)
+def solve_tsp_genetic(cities, pop_size=100, iterations=3000, greedy_count=10):
+    # 1. Create Initial Population
+    # pop_size 100 ve greedy_count 10, Berlin52 için çok iyi bir başlangıçtır.
+    current_pop = create_initial_population(cities, pop_size, greedy_count)
 
-    # Global Best: Keep the best solution found so far
-    best_solution = min(current_pop,key=calculate_fitness)
+    # Global Best: En iyiyi hafızada tutuyoruz
+    best_solution = min(current_pop, key=calculate_fitness)
     best_score = calculate_fitness(best_solution)
 
-    print(f"Initial Best Score (gen 0) : {best_score:.4f}")
+    print(f"Initial Best Score (Gen 0): {best_score:.4f}")
 
-    #2. loop through Epochs
+    # 2. Loop through Epochs
+    for i in range(1, iterations + 1):
 
-    for i in range(1,iterations+1):
-        # create next generation
-        # You can tweak mutation_rate (e.g., 0.1 or 0.2)
-        current_pop = create_new_generation(current_pop , mutation_rate = 0.1 , crossover_rate = 0.8)
+        # --- KRİTİK AYAR ---
+        # Mutasyonu 0.4 yapma, çok yıkıcı.
+        # Berlin52 için ideal oran 0.15 ile 0.20 arasıdır.
+        # Crossover rate 0.8 veya 0.85 iyidir.
 
-        #find the best in the CURRENT generation
-        current_best = min (current_pop , key=calculate_fitness)
+        current_pop = create_new_generation(current_pop, mutation_rate=0.15, crossover_rate=0.85)
+
+        # Bu neslin en iyisini bul
+        current_best = min(current_pop, key=calculate_fitness)
         current_score = calculate_fitness(current_best)
 
-        #3.Check if we found a new global best
+        # 3. Check if we found a new global best
         if current_score < best_score:
-            best_score =current_score
-            best_solution = current_best[:] #save the copy
-
+            best_score = current_score
+            best_solution = current_best[:]  # Kopyasını sakla
+            # Her iyileşmeyi görmek motivasyon artırır:
             print(f"Epoch {i}: New Best Found! Score = {best_score:.4f}")
 
-        #4. Progress report (e.g every 100 epochs)
-        if i % 100 == 0 :
-            print(f"Epoch {i}/{iterations}: completed. Current Best : {best_score:.4f}")
+        # 4. Progress report (Her 500 turda bir yazsın, ekranı doldurmasın)
+        if i % 500 == 0:
+            print(f"Epoch {i}/{iterations} completed. Current Best: {best_score:.4f}")
 
-    return best_solution , best_score
+    return best_solution, best_score
 
 
 # --- MAIN BLOCK: TESTING REQUIREMENTS ---
