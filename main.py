@@ -217,6 +217,25 @@ def ordered_crossover(parent1,parent2):
 
     return child
 
+def inversion_mutation(solution,mutation_rate=0.1):
+    #Roll the dice (a random number between 0.0 and 1.0)
+    if random.random() < mutation_rate:
+        #Make a copy so as not to alter the original list.
+        mutated_sol = solution[:]
+        # 2. Select two random breakpoints.
+        size = len(solution)
+        idx1 , idx2 = random.sample(range(size),2)
+        start,end = min(idx1,idx2),max(idx1,idx2)
+
+        # 3. Invert the intermediate part (Inversion)
+        # In Python, [::-1] is the inversion operation.
+        segment = mutated_sol[start:end+1]
+        mutated_sol[start:end+1] = segment[::-1]
+
+        return mutated_sol
+    # If the probability didn't work, send it back as is.
+    return solution
+
 
 # --- MAIN BLOCK: TESTING REQUIREMENTS ---
 if __name__ == "__main__":
@@ -232,6 +251,7 @@ if __name__ == "__main__":
         print("1. Part 1")
         print("2. Part 2")
         print("3. Part 3")
+        print("4. Part 4")
         print("0. Exit")
         print("=" * 50)
 
@@ -443,6 +463,51 @@ if __name__ == "__main__":
                         print("    (This is an expected situation and can be corrected with mutation.)")
 
                     print("\n   Test Finished for this file.")
+
+
+        elif choice == "4":
+            print("\n" + "-" * 50)
+            print("     PART 4: MUTATION")
+            print("-" * 50)
+            print("1. Test Mutation (Task 16)")
+            print("2. Test One Epoch (Jump from Generation 0 to 1))")
+            print("0. Return to Main Menu")
+            sub_choice = input("Select: ")
+            if sub_choice == "1":
+                print("\n[ARTICLE 16: Mutation Test]")
+
+                for file_name in files_to_test:
+                    sehirler = parse_tsp_file(file_name)
+                    if not sehirler: continue
+                    print(f"\n>>> File: {file_name}")
+
+                    pop = create_initial_population(sehirler, pop_size=50, greedy_count=5)
+                    p1=tournament_selection(pop,5)
+                    p2=tournament_selection(pop,5)
+                    child=ordered_crossover(p1,p2)
+
+                    score_before = calculate_fitness(child)
+                    print(f"Child Score (Before Mutation): {score_before:.2f}")
+
+                    #16.article
+                    print("Applying Mutation(Rate: 1.0 -> %100 Definite Mutation) . . .")
+                    mutated_child = inversion_mutation(child , mutation_rate=1.0)
+                    score_after = calculate_fitness(mutated_child)
+                    print(f"Child Score (after Mutation): {score_after:.2f}")
+
+                    if child != mutated_child:
+                        print("SUCCESS: Mutation changed the route structure! (Confirmed)")
+                        if score_before != score_after:
+                            diff = score_before - score_after
+                            if diff > 0:
+                                print(f"-> Result: Improved by {diff:.2f}")
+                            else:
+                                print(f"-> Result: Worse by {abs(diff):.2f}")
+                        else:
+                            print("-> Result: Score remained same (Coincedence), but route changed.")
+                    else:
+                        print("FAIL: The list did not change at all.")
+
 
         elif choice == "0":
             print("Exiting the program ... Have a nice day")
