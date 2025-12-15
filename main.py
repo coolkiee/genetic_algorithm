@@ -183,6 +183,7 @@ if __name__ == "__main__":
                 print("1. (5. 6.)fitness and info functions")
                 print("2. (7.)greedy vs random")
                 print("3. (8.)Best Spawm point")
+                print("4. (9.)POPULATION GENERATION ")
                 print("0. Return to Main Menu")
                 sub_choice = input("Part 2 please select an option: ")
                 if sub_choice == "1":
@@ -230,7 +231,8 @@ if __name__ == "__main__":
                         for i in range(len(sehirler)):
                             current_greedy = solve_greedy(sehirler, start_index=i)
                             score = calculate_fitness(current_greedy)
-                            print(f"Start Node {i}: {score:.2f} {info(current_greedy)}:")
+                            print(f"\n--- Start Node Index: {i} ---")
+                            info(current_greedy)
 
                             if score < best_score:
                                 best_score = score
@@ -240,6 +242,40 @@ if __name__ == "__main__":
                         print(f"Best Starting City Index: {best_start_node}")
                         print(f"Best Score: {best_score:.4f}")
 
+                elif sub_choice =="4":
+                    print("\n Art 9: POPULATION GENERATION")
+                    sehirler = parse_tsp_file("berlin52.tsp")
+
+                    if sehirler:
+                        greedy_reference = solve_greedy(sehirler, 0)
+                        greed_score = calculate_fitness(greedy_reference)
+                        print(f"Greedy Score: {greed_score:.4f}")
+                        print("-" * 30)
+
+                        #1. 100 random solutution creater
+                        saved_population = [] #reset list
+                        best_random_score = float('inf')
+                        print("100 random solution created")
+                        for i in range(100):
+                            sol = create_random_solution(sehirler)
+                            fit = calculate_fitness(sol)
+                            saved_population.append(sol)
+                            if i <5:
+                                print(f"Random Sol{i+1}: Fitness = {fit:.4f}")
+
+                            if fit < best_random_score:
+                                best_random_score = fit
+
+                        print ("\n(The other 95 are hidden.")
+                        print("-"  *30)
+                        print(f"best random score: {best_random_score:.4f}")
+                        print(f"Greedy Score: {greed_score:.4f}")
+                        diff = best_random_score - greed_score
+                        print(f"difference: {diff:.4f}\n")
+
+                elif sub_choice == "0":
+                    print("Exiting the part 2")
+                    break
         elif choice == "0":
             print("Exiting the program ... Have a nice day")
             break
