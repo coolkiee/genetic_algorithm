@@ -131,6 +131,21 @@ def create_population(cities , population_size):
         population.append(solution)
     return population
 
+def create_initial_population(cities,pop_size,greedy_count = 0):
+    population = []
+    for i in range(greedy_count):
+        start_node_index = i%len(cities)
+        greedy_sol = solve_greedy(cities,start_index = start_node_index)
+        population.append(greedy_sol)
+
+    remaining_count = pop_size - greedy_count
+    if remaining_count <0 : remaining_count = 0
+
+    for _ in range(remaining_count):
+        random_sol = create_random_solution(cities)
+        population.append(random_sol)
+    return population
+
 # --- MAIN BLOCK: TESTING REQUIREMENTS ---
 if __name__ == "__main__":
 
@@ -288,23 +303,45 @@ if __name__ == "__main__":
             print("\n" + "-" *40)
             print("     part3:Population And GA")
             print("-" *40)
-            print("1. (11.) Create Population")
+            print("1. (11. 12.) Population with Greedy Seeding")
             print("0. Main Menu")
 
             suf_choice = input("Please select an option: ")
 
             if suf_choice == "1":
-                print("\n[11. Arc: Create Population Test]")
+                print("\n[11. And 12. Arc: Population with Greedy Seeding]")
                 for file_name in files_to_test:
                     sehirler = parse_tsp_file(file_name)
                     if not sehirler: continue
-                    my_population = create_population(sehirler, 50)
                     print(f"\nFile: {file_name}")
+                    #TEST A: Random Only (Clause 12.a)
+                    print("Test A : A completely random population of 50 people.")
+                    pop_pure_random = create_initial_population(sehirler,50,0)
+                    #Let's check the first person's fitness (It should be bad).
+                    score_rnd = calculate_fitness(pop_pure_random[0])
+                    print(f"Size : {len(pop_pure_random)}")
+                    print(f"First Element Score : {score_rnd:.2f}")
+
+                    # TEST B: Mixed (Item 12.b)
+                    print("Test B : A population of 50 people (5 of whom are GREEDY)")
+                    # Let's have 50 people, but 5 of them should come from the Greedy algorithm.
+                    pop_mixed = create_initial_population(sehirler,50,5)
+
+                    # Since the first element is greedy, its score should be much better.
+                    score_greedy = calculate_fitness(pop_mixed[0])
+                    print(f"Size : {len(pop_mixed)}")
+                    print(f"First Element Score : {score_greedy:.2f}")
+
+                    #part11
+                    if score_greedy < score_rnd:
+                        print(f"SUCCESSFUL: Populations containing Greedy start better. ")
+                    #Create a population of 50 people.
+                    my_population = create_population(sehirler, 50)
+                    print(f"\nFile: {file_name}") #class'list'
                     print(f"Population Type: {type(my_population)}")
                     print(f"Population Size: {len(my_population)}")
-                    print(f"First Solution: {type(my_population[0])}")
-                    print(f"Test Successful!")
-
+                    print(f"First Solution Type: {type(my_population[0])}")
+                    print("Test Successful!\n")
 
         elif choice == "0":
             print("Exiting the program ... Have a nice day")
