@@ -124,6 +124,12 @@ def solve_greedy(cities, start_index=0):
 
     return solution
 
+def create_population(cities , population_size):
+    population = []
+    for _ in range(population_size):
+        solution = create_random_solution(cities)
+        population.append(solution)
+    return population
 
 # --- MAIN BLOCK: TESTING REQUIREMENTS ---
 if __name__ == "__main__":
@@ -138,6 +144,7 @@ if __name__ == "__main__":
         print("=" * 50)
         print("1. Part 1")
         print("2. Part 2")
+        print("3. Part 3")
         print("0. Exit")
         print("=" * 50)
 
@@ -276,6 +283,29 @@ if __name__ == "__main__":
                 elif sub_choice == "0":
                     print("Exiting the part 2")
                     break
+
+        elif choice == "3":
+            print("\n" + "-" *40)
+            print("     part3:Population And GA")
+            print("-" *40)
+            print("1. (11.) Create Population")
+            print("0. Main Menu")
+
+            suf_choice = input("Please select an option: ")
+
+            if suf_choice == "1":
+                print("\n[11. Arc: Create Population Test]")
+                for file_name in files_to_test:
+                    sehirler = parse_tsp_file(file_name)
+                    if not sehirler: continue
+                    my_population = create_population(sehirler, 50)
+                    print(f"\nFile: {file_name}")
+                    print(f"Population Type: {type(my_population)}")
+                    print(f"Population Size: {len(my_population)}")
+                    print(f"First Solution: {type(my_population[0])}")
+                    print(f"Test Successful!")
+
+
         elif choice == "0":
             print("Exiting the program ... Have a nice day")
             break
