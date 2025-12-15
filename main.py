@@ -275,43 +275,30 @@ def create_new_generation(previous_population,mutation_rate=0.1,crossover_rate=0
     return new_population
 
 
-def solve_tsp_genetic(cities, pop_size=100, iterations=3000, greedy_count=10):
-    # 1. Create Initial Population
-    # pop_size 100 ve greedy_count 10, Berlin52 için çok iyi bir başlangıçtır.
+
+def solve_tsp_genetic(cities, pop_size=100, iterations=3000, greedy_count=20, mutation_rate=0.1, crossover_rate=0.85):
+
     current_pop = create_initial_population(cities, pop_size, greedy_count)
 
-    # Global Best: En iyiyi hafızada tutuyoruz
     best_solution = min(current_pop, key=calculate_fitness)
     best_score = calculate_fitness(best_solution)
-
-    fitness_history=[]
-    fitness_history.append(best_score)
+    fitness_history = [best_score]
 
 
-    print(f"Initial Best Score (Gen 0): {best_score:.4f}")
-
-    # 2. Loop through Epochs
     for i in range(1, iterations + 1):
 
-        current_pop = create_new_generation(current_pop, mutation_rate=0.15, crossover_rate=0.85)
+        current_pop = create_new_generation(current_pop, mutation_rate, crossover_rate)
 
-        # Find the best of this generation.
         current_best = min(current_pop, key=calculate_fitness)
         current_score = calculate_fitness(current_best)
 
-        # 3. Check if we found a new global best
         if current_score < best_score:
             best_score = current_score
             best_solution = current_best[:]
-            print(f"Epoch {i}: New Best Found! Score = {best_score:.4f}")
 
         fitness_history.append(best_score)
 
-        # 4. Progress report
-        if i % 500 == 0:
-            print(f"Epoch {i}/{iterations} completed. Current Best: {best_score:.4f}")
-
-    return best_solution, best_score , fitness_history
+    return best_solution, best_score, fitness_history
 
 def plot_results(history , best_route):
     if not HAS_MATPLOTLIB:
@@ -350,6 +337,45 @@ def plot_results(history , best_route):
     plt.show()
 
 
+# --- MADDE 20: PARAMETRE KARŞILAŞTIRMA ---
+def run_parameter_comparison(cities):
+    if not HAS_MATPLOTLIB:
+        print("Matplotlib eksik, grafik çizilemez.")
+        return
+
+    # Test etmek istediğimiz senaryolar (Mutasyon Oranları)
+    # Senaryo Adı : Mutasyon Oranı
+    scenarios = {"Low Mutation (1%)": 0.01, "Normal Mutation (10%)": 0.1, "High Mutation (50%)": 0.5}
+
+    plt.figure(figsize=(10, 6))
+
+    print("\n--- COMPARISON STARTED ---")
+
+    # Her senaryoyu döngüyle çalıştır
+    for name, m_rate in scenarios.items():
+        print(f"Running scenario: {name} ...")
+
+        # Iteration sayısını düşük tutabiliriz (ör: 1000) hızlı bitsin diye
+        _, final_score, history = solve_tsp_genetic(
+            cities,
+            pop_size=100,
+            iterations=1500,
+            greedy_count=10,
+            mutation_rate=m_rate
+        )
+
+        # Grafiğe ekle
+        plt.plot(history, label=f"{name} (Score: {final_score:.0f})")
+
+    # Grafik Ayarları
+    plt.title("Impact of Mutation Rate on Convergence")
+    plt.xlabel("Epochs")
+    plt.ylabel("Best Score (Distance)")
+    plt.legend()  # Hangi rengin ne olduğunu gösteren kutu
+    plt.grid(True)
+
+    print("Displaying Comparison Chart...")
+    plt.show()
 
 # --- MAIN BLOCK: TESTING REQUIREMENTS ---
 if __name__ == "__main__":
@@ -366,6 +392,7 @@ if __name__ == "__main__":
         print("2. Part 2")
         print("3. Part 3")
         print("4. Part 4")
+        print("5. Part 5")
         print("0. Exit")
         print("=" * 50)
 
@@ -699,6 +726,18 @@ if __name__ == "__main__":
 
                     print("Displaying Graphs")
                     plot_results(history , final_route)
+
+        elif choice == "5":
+            print("\n" + "=" * 50)
+            print("     PART 5: COMPARE PARAMETERS")
+            print("=" * 50)
+
+            file_name = "berlin52.tsp"
+            print(f"Loading {file_name} for comparison...")
+            sehirler = parse_tsp_file(file_name)
+
+            if sehirler:
+                run_parameter_comparison(sehirler)
 
 
 
