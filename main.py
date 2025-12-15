@@ -146,6 +146,78 @@ def create_initial_population(cities,pop_size,greedy_count = 0):
         population.append(random_sol)
     return population
 
+
+# --- MADDE 13: Population Information ---
+def info_population(population):
+    if not population:
+        print("Population is empty.")
+        return
+    # 1. Calculate everyone's fitness score.
+    scores = [calculate_fitness(sol) for sol in population]
+
+    # 2. Extract the statistics.
+    best_score = min(scores)
+    worst_score = max(scores)
+    avg_score=sum(scores)/len(scores)
+
+    # 3. Median calculation (Middle value)
+    sorted_scores = sorted(scores)
+    mid_index = len(scores) // 2
+    median_score = sorted_scores[mid_index]
+
+    print(f"Population Size : {len(population)}")
+    print(f"Best Score : {best_score:.4f}")
+    print(f"Worst Score : {worst_score:4f}")
+    print(f"Average Score : {avg_score:.4f}")
+    print(f"Median Score : {median_score:.4f}")
+
+#task 14
+def tournament_selection(population,tournament_size=5):
+    #1. Select candidates randomly.
+    #This is a precaution to prevent errors if the population size is smaller than the tournament size.
+    k = min(len(population),tournament_size)
+    candidates = random.sample(population,k)
+
+    #2. Find the best (shortest distance) candidate among the options.
+    best_candidate = None
+    best_score = float('inf')
+
+    for candidate in candidates:
+        score = calculate_fitness(candidate)
+        if score < best_score:
+            best_score = score
+            best_candidate = candidate
+
+    return best_candidate
+
+def ordered_crossover(parent1,parent2):
+    size =len(parent1)
+    #1. Rastgele iki kesme noktası belirle
+    cut1,cut2 = sorted(random.sample(range(size),2))
+
+    #2. Çocuğu boş (None) olarak başlat
+    child = [None] * size
+
+    # 3. Parent1'den parça kopyala (Genetik Miras 1)
+    child[cut1:cut2] = parent1[cut1:cut2]
+
+    # Kopyalanan şehirlerin ID'lerini bir sette tut (Hızlı kontrol için)
+    current_ids = set(city.id for city in child[cut1:cut2])
+
+    p2_index = 0
+    for i in range(size):
+        if child[i] is None:
+            #parent2'deki sıradaki şehri bul  (zaten eklenmemiş olanı)
+            while parent2[p2_index].id not in current_ids:
+                p2_index+=1
+
+            #şehri ekle
+            child[i] = parent2 [p2_index]
+            current_ids.add(parent2[p2_index].id)
+
+    return child
+
+
 # --- MAIN BLOCK: TESTING REQUIREMENTS ---
 if __name__ == "__main__":
 
@@ -299,49 +371,78 @@ if __name__ == "__main__":
                     print("Exiting the part 2")
                     break
 
+                # --- PART 3: GENETİK ALGORİTMA (Maddeler 11-14) ---
+
         elif choice == "3":
-            print("\n" + "-" *40)
-            print("     part3:Population And GA")
-            print("-" *40)
-            print("1. (11. 12.) Population with Greedy Seeding")
-            print("0. Main Menu")
+            print("\n" + "-" * 50)
+            print("     PART 3: POPULATION & GENETIC ALGORITHM")
+            print("-" * 50)
+            print("1. Run Full Test (Tasks 11, 12, 13, 14, 15)")
+            print("0. Return to Main Menu")
 
             suf_choice = input("Please select an option: ")
 
             if suf_choice == "1":
-                print("\n[11. And 12. Arc: Population with Greedy Seeding]")
+                print("\n[PART 3 INTEGRATED TEST STARTING...]")
+
                 for file_name in files_to_test:
                     sehirler = parse_tsp_file(file_name)
                     if not sehirler: continue
-                    print(f"\nFile: {file_name}")
-                    #TEST A: Random Only (Clause 12.a)
-                    print("Test A : A completely random population of 50 people.")
-                    pop_pure_random = create_initial_population(sehirler,50,0)
-                    #Let's check the first person's fitness (It should be bad).
-                    score_rnd = calculate_fitness(pop_pure_random[0])
-                    print(f"Size : {len(pop_pure_random)}")
-                    print(f"First Element Score : {score_rnd:.2f}")
 
-                    # TEST B: Mixed (Item 12.b)
-                    print("Test B : A population of 50 people (5 of whom are GREEDY)")
-                    # Let's have 50 people, but 5 of them should come from the Greedy algorithm.
-                    pop_mixed = create_initial_population(sehirler,50,5)
+                    print(f"\n" + "=" * 40)
+                    print(f" FILE: {file_name}")
+                    print("=" * 40)
 
-                    # Since the first element is greedy, its score should be much better.
-                    score_greedy = calculate_fitness(pop_mixed[0])
-                    print(f"Size : {len(pop_mixed)}")
-                    print(f"First Element Score : {score_greedy:.2f}")
+                    # --- MADDE 11 & 12: Popülasyon Oluşturma ---
+                    # Hem liste yapısını (11) hem de Greedy desteğini (12) kullanıyoruz.
+                    print(">> [Task 11-12] Creating Initial Population...")
+                    # 50 kişilik nüfus, 5 tanesi Greedy (Zeki), 45 tanesi Random.
+                    my_pop = create_initial_population(sehirler, pop_size=50, greedy_count=5)
 
-                    #part11
-                    if score_greedy < score_rnd:
-                        print(f"SUCCESSFUL: Populations containing Greedy start better. ")
-                    #Create a population of 50 people.
-                    my_population = create_population(sehirler, 50)
-                    print(f"\nFile: {file_name}") #class'list'
-                    print(f"Population Type: {type(my_population)}")
-                    print(f"Population Size: {len(my_population)}")
-                    print(f"First Solution Type: {type(my_population[0])}")
-                    print("Test Successful!\n")
+                    # Madde 11 Kontrolü (Liste mi?)
+                    print(f"   Population Type: {type(my_pop)} (Correct)")
+                    print(f"   Population Size: {len(my_pop)}")
+
+                    # --- MADDE 13: İstatistikler (Info) ---
+                    print("\n>> [Task 13] Population Statistics:")
+                    info_population(my_pop)
+                    # Bu fonksiyon Best, Worst, Average, Median basacak.
+
+                    # --- MADDE 14: Seçim (Selection) Testi ---
+                    print("\n>> [Task 14] Tournament Selection Test:")
+                    # Turnuva sisteminin çalıştığını kanıtlayalım
+                    print("   Running selection 5 times to see who wins...")
+
+                    parent1 = tournament_selection(my_pop,5)
+                    parent2 = tournament_selection(my_pop,5)
+
+                    score_p1 =calculate_fitness(parent1)
+                    score_p2 =calculate_fitness(parent2)
+
+                    print(f"   Parent 1 Score: {score_p1:.2f}")
+                    print(f"   Parent 2 Score: {score_p2:.2f}")
+
+                    #--- Crossover 15. artc
+                    print("\n>> [task15] crossover (Ordered Crossover)")
+                    # We breed two parents and produce a child.
+                    child = ordered_crossover(parent1, parent2)
+                    score_child = calculate_fitness(child)
+                    # Let's check the child (Is there a mistake? Is the number of cities correct?)
+                    print(f"   {'Parent 1 Score':<20} : {score_p1:.4f}")
+                    print(f"   {'Parent 2 Score':<20} : {score_p2:.4f}")
+                    print(f"   {'Child Score':<20} : {score_child:.4f}")
+                    print("-" * 45)
+
+                    best_parent = min(score_p1, score_p2)
+                    if score_child < best_parent:
+                        diff = best_parent - score_child
+                        print(f"   RESULT: Child scored {diff:.2f} points better than parents.!")
+                    else:
+                        diff = score_child - best_parent
+                        print(f"   RESULT: Normal. Child is {diff:.2f} points worse than parents..")
+                        print("    (This is an expected situation and can be corrected with mutation.)")
+
+                    print("\n   Test Finished for this file.")
 
         elif choice == "0":
             print("Exiting the program ... Have a nice day")
