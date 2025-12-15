@@ -2,6 +2,12 @@ import math
 import random
 import os
 
+try:
+    import matplotlib.pyplot as plt
+    HAS_MATPLOTLIB = True
+except ImportError:
+    print("WARNING: matplotlib not installed. Graphs will not be shown.")
+    HAS_MATPLOTLIB = False
 
 # --- MADDE 1: Data Structure (Class Structure) ---
 class City:
@@ -278,34 +284,71 @@ def solve_tsp_genetic(cities, pop_size=100, iterations=3000, greedy_count=10):
     best_solution = min(current_pop, key=calculate_fitness)
     best_score = calculate_fitness(best_solution)
 
+    fitness_history=[]
+    fitness_history.append(best_score)
+
+
     print(f"Initial Best Score (Gen 0): {best_score:.4f}")
 
     # 2. Loop through Epochs
     for i in range(1, iterations + 1):
 
-        # --- KRİTİK AYAR ---
-        # Mutasyonu 0.4 yapma, çok yıkıcı.
-        # Berlin52 için ideal oran 0.15 ile 0.20 arasıdır.
-        # Crossover rate 0.8 veya 0.85 iyidir.
-
         current_pop = create_new_generation(current_pop, mutation_rate=0.15, crossover_rate=0.85)
 
-        # Bu neslin en iyisini bul
+        # Find the best of this generation.
         current_best = min(current_pop, key=calculate_fitness)
         current_score = calculate_fitness(current_best)
 
         # 3. Check if we found a new global best
         if current_score < best_score:
             best_score = current_score
-            best_solution = current_best[:]  # Kopyasını sakla
-            # Her iyileşmeyi görmek motivasyon artırır:
+            best_solution = current_best[:]
             print(f"Epoch {i}: New Best Found! Score = {best_score:.4f}")
 
-        # 4. Progress report (Her 500 turda bir yazsın, ekranı doldurmasın)
+        fitness_history.append(best_score)
+
+        # 4. Progress report
         if i % 500 == 0:
             print(f"Epoch {i}/{iterations} completed. Current Best: {best_score:.4f}")
 
-    return best_solution, best_score
+    return best_solution, best_score , fitness_history
+
+def plot_results(history , best_route):
+    if not HAS_MATPLOTLIB:
+        print("Matplotlib is missing. Skipping graphs.")
+        return
+
+    #1. Graph: Learning Curve (Score vs Epoch)
+    plt.figure(figsize=(12,5))
+
+    # Left side: Scoreboard
+    plt.subplot(1,2,1)
+    plt.plot(history)
+    plt.title("Genetic Algorithm Convergence")
+    plt.xlabel("Epoch(Generation)")
+    plt.ylabel("Best Score (Distance)")
+    plt.grid(True)
+
+    #2.Graphic: Route Map (Cities and Roads)
+    plt.subplot(1,2,2)
+
+    #Get the coordinates of the cities.
+    x_coords = [city.x for city in best_route]
+    y_coords = [city.y for city in best_route]
+
+    #To close the road, add the starting city to the end.
+    x_coords.append(best_route[0].x)
+    y_coords.append(best_route[0].y)
+
+    plt.plot(x_coords,y_coords,'o-r') #'o-r' redline with dots
+    plt.title(f"Best Route Found (score : {calculate_fitness(best_route):.2f})")
+
+    for city in best_route:
+        plt.annotate(str(city.id), (city.x, city.y))
+
+    plt.tight_layout()
+    plt.show()
+
 
 
 # --- MAIN BLOCK: TESTING REQUIREMENTS ---
@@ -624,7 +667,7 @@ if __name__ == "__main__":
 
             if sub_choice == "3":
                 print("\n" + "=" * 50)
-                print("     FINAL GENETIC ALGORITHM RUN")
+                print("     FINAL RUN AND GRAPHICS")
                 print("=" * 50)
 
                 for file_name in files_to_test:
@@ -639,11 +682,13 @@ if __name__ == "__main__":
                     print("Running Genetic Algorithm . . .")
 
                     #starting algorthm
-                    final_route , final_score = solve_tsp_genetic(sehirler,pop_size=100 , iterations=3000,greedy_count=10)
+                    final_route , final_score ,history = solve_tsp_genetic(sehirler,pop_size=100 , iterations=3000,greedy_count=10)
                     print("-" * 30)
                     print(f"FINAL RESULT ({file_name}):")
                     print(f"Greedy Score : {greedy_score:.4f}")
                     print(f"Genetic Score: {final_score:.4f}")
+
+
 
                     diff = greedy_score - final_score
                     if  diff > 0 :
@@ -651,6 +696,9 @@ if __name__ == "__main__":
                     else:
                         print(f"RESULT: Genetic is worse by {abs(diff):.2f} points. (Try increasing iterations)")
                     print("-" * 30)
+
+                    print("Displaying Graphs")
+                    plot_results(history , final_route)
 
 
 
