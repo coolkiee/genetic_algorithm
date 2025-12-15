@@ -208,12 +208,13 @@ def ordered_crossover(parent1,parent2):
     for i in range(size):
         if child[i] is None:
             #parent2'deki sıradaki şehri bul  (zaten eklenmemiş olanı)
-            while parent2[p2_index].id not in current_ids:
-                p2_index+=1
+            while p2_index < size and parent2[p2_index].id in current_ids:
+                p2_index += 1
 
             #şehri ekle
-            child[i] = parent2 [p2_index]
-            current_ids.add(parent2[p2_index].id)
+            if p2_index < size:
+                child[i] = parent2[p2_index]
+                current_ids.add(parent2[p2_index].id)
 
     return child
 
@@ -236,6 +237,29 @@ def inversion_mutation(solution,mutation_rate=0.1):
     # If the probability didn't work, send it back as is.
     return solution
 
+def create_new_generation(previous_population,mutation_rate=0.1,crossover_rate=0.8):
+    new_population = []
+    pop_size = len(previous_population)
+
+    while len(new_population) < pop_size:
+        parent1 = tournament_selection(previous_population , tournament_size=5)
+        parent2 = tournament_selection(previous_population , tournament_size=5)
+
+        if random.random() < crossover_rate:
+            child = ordered_crossover(parent1,parent2)
+        else:
+            child = parent1[:]
+
+        if None in child:
+            continue
+
+        child= inversion_mutation(child,mutation_rate)
+
+        if len(child) != len(parent1):
+            continue
+
+        new_population.append(child)
+    return new_population
 
 # --- MAIN BLOCK: TESTING REQUIREMENTS ---
 if __name__ == "__main__":
@@ -507,6 +531,53 @@ if __name__ == "__main__":
                             print("-> Result: Score remained same (Coincedence), but route changed.")
                     else:
                         print("FAIL: The list did not change at all.")
+
+            if sub_choice == "2":
+                print("\n[ARTICLE 17: One Epoch Test]")
+                for file_name in files_to_test:
+                    sehirler = parse_tsp_file(file_name)
+                    if not sehirler: continue
+                    print(f"\n>>> File: {file_name}")
+
+                    #1. EPOCH 0: Initial Population
+                    print("Creating Generation 0 (Initial) . . .")
+                    pop_gen0 = create_initial_population(sehirler,50,5) #greedy 5 ,45 random
+
+                    print("\n--- Generation 0 stats ---")
+                    info_population(pop_gen0)
+
+                    #Let's save the best score for comparison.
+                    best_gen0 = min([calculate_fitness(s) for s in pop_gen0])
+
+                    # 2. EPOCH 1: Evolutionary Transition (Function of Article 17)
+                    print("\nRunning Evolution (creating Generation1). . . ")
+                    # Let's assume the crossover rate is 80% and the mutation rate is 10%.
+                    pop_gen1 = create_new_generation(pop_gen0 , mutation_rate=0.1, crossover_rate=0.8)
+
+                    print("\n--- GENERATION 1 STATS ---")
+                    info_population(pop_gen1)
+
+                    best_gen1 = min([calculate_fitness(s) for s in pop_gen1])
+                    #result
+                    print("-" *40)
+                    if len(pop_gen1) == len(pop_gen0):
+                        print("SUCCESS: Population size preserved.")
+                    else:
+                        print("FAIL: Population size changed!")
+
+                    diff = best_gen0 - best_gen1
+                    if diff > 0 :
+                        print(f"EVOLUTION WORKING: Best score omproved by {diff:.2f} points.")
+                    elif diff < 0:
+                        print(f"WARNING: Best score got worse by {abs(diff):.2f} points.")
+                        print("(This happens sometimes in early generations without Elitism. Keep going!)")
+                    else:
+                        print("STAGNATION: Best score remained exactly the same.")
+
+
+
+
+
 
 
         elif choice == "0":
