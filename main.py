@@ -381,7 +381,7 @@ def run_parameter_comparison(cities):
 if __name__ == "__main__":
 
     # Madde 1.c: Test on at least two different files
-    files_to_test = ["berlin11_modified.tsp", "berlin52.tsp"]
+    files_to_test = ["berlin11_modified.tsp", "berlin52.tsp" ,"kroA100.tsp","kroA150.tsp"]
     current_cities = []
     selected_filename = "none"
     while True:
@@ -732,12 +732,13 @@ if __name__ == "__main__":
             print("     PART 5: COMPARE PARAMETERS")
             print("=" * 50)
 
-            file_name = "berlin52.tsp"
-            print(f"Loading {file_name} for comparison...")
-            sehirler = parse_tsp_file(file_name)
+            for file_name in files_to_test:
+                print(f"Loading {file_name} for comparison...")
+                sehirler = parse_tsp_file(file_name)
 
-            if sehirler:
-                run_parameter_comparison(sehirler)
+                if sehirler:
+                    run_parameter_comparison(sehirler)
+
 
 
 
