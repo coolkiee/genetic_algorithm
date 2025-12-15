@@ -241,25 +241,68 @@ def create_new_generation(previous_population,mutation_rate=0.1,crossover_rate=0
     new_population = []
     pop_size = len(previous_population)
 
+
+
+
     while len(new_population) < pop_size:
         parent1 = tournament_selection(previous_population , tournament_size=5)
         parent2 = tournament_selection(previous_population , tournament_size=5)
 
+        #selection
         if random.random() < crossover_rate:
             child = ordered_crossover(parent1,parent2)
         else:
             child = parent1[:]
 
+        #crossover
         if None in child:
             continue
 
+        #mutation
         child= inversion_mutation(child,mutation_rate)
+
 
         if len(child) != len(parent1):
             continue
 
         new_population.append(child)
     return new_population
+
+def solve_tsp_genetic(cities,pop_size=50 , iterations =1000,greedy_count=5):
+
+    #1.Create Initial Population
+    current_pop = create_initial_population(cities , pop_size,greedy_count)
+
+    # Global Best: Keep the best solution found so far
+    best_solution = min(current_pop,key=calculate_fitness)
+    best_score = calculate_fitness(best_solution)
+
+    print(f"Initial Best Score (gen 0) : {best_score:.4f}")
+
+    #2. loop through Epochs
+
+    for i in range(1,iterations+1):
+        # create next generation
+        # You can tweak mutation_rate (e.g., 0.1 or 0.2)
+        current_pop = create_new_generation(current_pop , mutation_rate = 0.1 , crossover_rate = 0.8)
+
+        #find the best in the CURRENT generation
+        current_best = min (current_pop , key=calculate_fitness)
+        current_score = calculate_fitness(current_best)
+
+        #3.Check if we found a new global best
+        if current_score < best_score:
+            best_score =current_score
+            best_solution = current_best[:] #save the copy
+
+            print(f"Epoch {i}: New Best Found! Score = {best_score:.4f}")
+
+        #4. Progress report (e.g every 100 epochs)
+        if i % 100 == 0 :
+            print(f"Epoch {i}/{iterations}: completed. Current Best : {best_score:.4f}")
+
+    return best_solution , best_score
+
 
 # --- MAIN BLOCK: TESTING REQUIREMENTS ---
 if __name__ == "__main__":
@@ -494,7 +537,8 @@ if __name__ == "__main__":
             print("     PART 4: MUTATION")
             print("-" * 50)
             print("1. Test Mutation (Task 16)")
-            print("2. Test One Epoch (Jump from Generation 0 to 1))")
+            print("2. Test One Epoch (Jump from Generation 0 to 1) (task 17)")
+            print("3. Final Genetic Algorithm (Task 18)")
             print("0. Return to Main Menu")
             sub_choice = input("Select: ")
             if sub_choice == "1":
@@ -574,9 +618,35 @@ if __name__ == "__main__":
                     else:
                         print("STAGNATION: Best score remained exactly the same.")
 
+            if sub_choice == "3":
+                print("\n" + "=" * 50)
+                print("     FINAL GENETIC ALGORITHM RUN")
+                print("=" * 50)
 
+                for file_name in files_to_test:
+                    sehirler = parse_tsp_file(file_name)
+                    if not sehirler: continue
+                    print(f"\n>>> File: {file_name}")
 
+                    # Calculate your Greedy Score for reference
+                    greedy_sol = solve_greedy(sehirler, 0)
+                    greedy_score = calculate_fitness(greedy_sol)
+                    print(f"Greedy Score to beat {greedy_score:.4f}")
+                    print("Running Genetic Algorithm . . .")
 
+                    #starting algorthm
+                    final_route , final_score = solve_tsp_genetic(sehirler,pop_size=100 , iterations=3000,greedy_count=10)
+                    print("-" * 30)
+                    print(f"FINAL RESULT ({file_name}):")
+                    print(f"Greedy Score : {greedy_score:.4f}")
+                    print(f"Genetic Score: {final_score:.4f}")
+
+                    diff = greedy_score - final_score
+                    if  diff > 0 :
+                        print(f"SUCCESS: Genetic Algorithm is better by {diff:.2f} points!")
+                    else:
+                        print(f"RESULT: Genetic is worse by {abs(diff):.2f} points. (Try increasing iterations)")
+                    print("-" * 30)
 
 
 
