@@ -52,9 +52,6 @@ def parse_tsp_file(filename):
 
 # --- MADDE 2: Distance Function ---
 def calculate_distance(city1, city2):
-    """
-    Returns float distance between two cities.
-    """
     x_farki = city1.x - city2.x
     y_farki = city1.y - city2.y
     distance = math.sqrt(x_farki ** 2 + y_farki ** 2)
@@ -62,10 +59,6 @@ def calculate_distance(city1, city2):
 
 # --- MADDE 3 & 4: Solution Storage & Random Solution ---
 def create_random_solution(cities):
-    """
-    Madde 4: Create a random one based on file.
-    Uses random.sample to avoid repetition (Madde 4.a).
-    """
     random_solution = random.sample(cities, len(cities))
     return random_solution
 
@@ -99,7 +92,7 @@ def solve_greedy(cities, start_index=0):
     """
     if not cities: return []
 
-    # 1. Orijinal listeyi korumak için kopyasını al
+    #1. Make a copy to preserve the original list.
     unvisited = cities.copy()
 
     # 2. choose your start city
