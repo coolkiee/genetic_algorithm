@@ -13,7 +13,6 @@ except ImportError:
 # --- MADDE 1: Data Structure (Class Structure) ---
 class City:
     def __init__(self, id, x, y):
-        # Madde 1.b: Datatypes (int for ID, float for coordinates)
         self.id = int(id)
         self.x = float(x)
         self.y = float(y)
@@ -62,7 +61,6 @@ def calculate_distance(city1, city2):
     return distance
 
 # --- MADDE 3 & 4: Solution Storage & Random Solution ---
-# Karar (Madde 3): Şehirleri tutmak için Python 'list' yapısı seçilmiştir.
 def create_random_solution(cities):
     """
     Madde 4: Create a random one based on file.
@@ -199,26 +197,20 @@ def tournament_selection(population,tournament_size=5):
 
 def ordered_crossover(parent1,parent2):
     size =len(parent1)
-    #1. Rastgele iki kesme noktası belirle
     cut1,cut2 = sorted(random.sample(range(size),2))
 
-    #2. Çocuğu boş (None) olarak başlat
     child = [None] * size
 
-    # 3. Parent1'den parça kopyala (Genetik Miras 1)
     child[cut1:cut2] = parent1[cut1:cut2]
 
-    # Kopyalanan şehirlerin ID'lerini bir sette tut (Hızlı kontrol için)
     current_ids = set(city.id for city in child[cut1:cut2])
 
     p2_index = 0
     for i in range(size):
         if child[i] is None:
-            #parent2'deki sıradaki şehri bul  (zaten eklenmemiş olanı)
             while p2_index < size and parent2[p2_index].id in current_ids:
                 p2_index += 1
 
-            #şehri ekle
             if p2_index < size:
                 child[i] = parent2[p2_index]
                 current_ids.add(parent2[p2_index].id)
@@ -331,23 +323,18 @@ def plot_results(history , best_route):
     plt.tight_layout()
     plt.show()
 
-# --- MADDE 20: PARAMETRE KARŞILAŞTIRMA ---
+# --- TASK 20
 def run_parameter_comparison(cities):
     if not HAS_MATPLOTLIB:
         print("Matplotlib eksik, grafik çizilemez.")
         return
 
     scenarios = {"Low Mutation (1%)": 0.01, "Normal Mutation (10%)": 0.1, "High Mutation (50%)": 0.5}
-
     plt.figure(figsize=(10, 6))
-
     print("\n--- COMPARISON STARTED ---")
-
-    # Her senaryoyu döngüyle çalıştır
     for name, m_rate in scenarios.items():
         print(f"Running scenario: {name} ...")
 
-        # Iteration sayısını düşük tutabiliriz (ör: 1000) hızlı bitsin diye
         _, final_score, history = solve_tsp_genetic(
             cities,
             pop_size=100,
@@ -355,15 +342,14 @@ def run_parameter_comparison(cities):
             greedy_count=10,
             mutation_rate=m_rate
         )
-
-        # Grafiğe ekle
+        # add Graf
         plt.plot(history, label=f"{name} (Score: {final_score:.0f})")
 
-    # Grafik Ayarları
+    # graffic settings
     plt.title("Impact of Mutation Rate on Convergence")
     plt.xlabel("Epochs")
     plt.ylabel("Best Score (Distance)")
-    plt.legend()  # Hangi rengin ne olduğunu gösteren kutu
+    plt.legend()
     plt.grid(True)
 
     print("Displaying Comparison Chart...")
@@ -415,19 +401,10 @@ def generate_final_report_stats(cities):
     print("\n3. Running GENETIC ALGORITHM (10 Runs - This may take time)...")
     ga_scores = []
 
-    # EN İYİ PARAMETRELERİNİ BURAYA GİR:
-    # Örnek: Pop=150, Iter=2000, Greedy=20, Mut=0.1
-    best_params = {
-        "pop_size": 150,
-        "iterations": 2000,
-        "greedy_count": 20,
-        "mutation_rate": 0.1,
-        "crossover_rate": 0.85
-    }
+    best_params = {"pop_size": 150, "iterations": 2000, "greedy_count": 20, "mutation_rate": 0.1, "crossover_rate": 0.85}
 
     for run in range(1, 11):
         print(f"   Run {run}/10...", end="\r")
-        # solve_tsp_genetic fonksiyonunu çağırıyoruz
         _, best_score, _ = solve_tsp_genetic(cities, **best_params)
         ga_scores.append(best_score)
 
@@ -611,8 +588,6 @@ if __name__ == "__main__":
                     print("Exiting the part 2")
                     break
 
-                # --- PART 3: GENETİK ALGORİTMA (Maddeler 11-14) ---
-
         elif choice == "3":
             print("\n" + "-" * 50)
             print("     PART 3: POPULATION & GENETIC ALGORITHM")
@@ -633,24 +608,23 @@ if __name__ == "__main__":
                     print(f" FILE: {file_name}")
                     print("=" * 40)
 
-                    # --- MADDE 11 & 12: Popülasyon Oluşturma ---
-                    # Hem liste yapısını (11) hem de Greedy desteğini (12) kullanıyoruz.
+                    # --- ARTİCLE 11 & 12: Population creater ---
                     print(">> [Task 11-12] Creating Initial Population...")
                     # 50 kişilik nüfus, 5 tanesi Greedy (Zeki), 45 tanesi Random.
                     my_pop = create_initial_population(sehirler, pop_size=50, greedy_count=5)
 
-                    # Madde 11 Kontrolü (Liste mi?)
+                    # Article 11
                     print(f"   Population Type: {type(my_pop)} (Correct)")
                     print(f"   Population Size: {len(my_pop)}")
 
-                    # --- MADDE 13: İstatistikler (Info) ---
+                    # --- Article 13: Statictic (Info) ---
                     print("\n>> [Task 13] Population Statistics:")
                     info_population(my_pop)
                     # Bu fonksiyon Best, Worst, Average, Median basacak.
 
-                    # --- MADDE 14: Seçim (Selection) Testi ---
+                    # --- Article 14: ---
                     print("\n>> [Task 14] Tournament Selection Test:")
-                    # Turnuva sisteminin çalıştığını kanıtlayalım
+                    # show the tournament system working
                     print("   Running selection 5 times to see who wins...")
 
                     parent1 = tournament_selection(my_pop,5)
@@ -821,19 +795,14 @@ if __name__ == "__main__":
             print("     PART 3: FINAL STATISTICAL REPORT (ALL FILES)")
             print("#" * 60)
 
-            # files_to_test listesindeki her dosya için sırayla işlem yap
             for file_name in files_to_test:
                 print(f"\n\n>>> PROCESSING FILE: {file_name} <<<")
-
-                # 1. Dosyayı Yükle
                 sehirler = parse_tsp_file(file_name)
 
                 if not sehirler:
                     print(f"Skipping {file_name} (Could not load).")
                     continue
 
-                # 2. İstatistik Fonksiyonunu Çağır
-                # (Bu fonksiyonu bir önceki adımda koduna eklemiştik)
                 generate_final_report_stats(sehirler)
 
                 print(f">>> REPORT FOR {file_name} COMPLETED.")
