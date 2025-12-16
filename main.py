@@ -1,6 +1,7 @@
 import math
 import random
 import os
+import statistics
 
 try:
     import matplotlib.pyplot as plt
@@ -247,9 +248,6 @@ def create_new_generation(previous_population,mutation_rate=0.1,crossover_rate=0
     new_population = []
     pop_size = len(previous_population)
 
-
-
-
     while len(new_population) < pop_size:
         parent1 = tournament_selection(previous_population , tournament_size=5)
         parent2 = tournament_selection(previous_population , tournament_size=5)
@@ -274,8 +272,6 @@ def create_new_generation(previous_population,mutation_rate=0.1,crossover_rate=0
         new_population.append(child)
     return new_population
 
-
-
 def solve_tsp_genetic(cities, pop_size=100, iterations=3000, greedy_count=20, mutation_rate=0.1, crossover_rate=0.85):
 
     current_pop = create_initial_population(cities, pop_size, greedy_count)
@@ -283,7 +279,6 @@ def solve_tsp_genetic(cities, pop_size=100, iterations=3000, greedy_count=20, mu
     best_solution = min(current_pop, key=calculate_fitness)
     best_score = calculate_fitness(best_solution)
     fitness_history = [best_score]
-
 
     for i in range(1, iterations + 1):
 
@@ -336,15 +331,12 @@ def plot_results(history , best_route):
     plt.tight_layout()
     plt.show()
 
-
 # --- MADDE 20: PARAMETRE KARŞILAŞTIRMA ---
 def run_parameter_comparison(cities):
     if not HAS_MATPLOTLIB:
         print("Matplotlib eksik, grafik çizilemez.")
         return
 
-    # Test etmek istediğimiz senaryolar (Mutasyon Oranları)
-    # Senaryo Adı : Mutasyon Oranı
     scenarios = {"Low Mutation (1%)": 0.01, "Normal Mutation (10%)": 0.1, "High Mutation (50%)": 0.5}
 
     plt.figure(figsize=(10, 6))
@@ -377,6 +369,92 @@ def run_parameter_comparison(cities):
     print("Displaying Comparison Chart...")
     plt.show()
 
+
+def generate_final_report_stats(cities):
+    print("\n" + "=" * 60)
+    print("      PART 3: FINAL STATISTICAL REPORT GENERATION")
+    print("=" * 60)
+    print(f"Analyzing {len(cities)} cities...")
+
+    # ---------------------------------------------------------
+    # 1. RANDOM SEARCH (1000 RUNS)
+    # ---------------------------------------------------------
+    print("\n1. Running RANDOM SEARCH (1000 tests)...")
+    random_scores = []
+    for _ in range(1000):
+        sol = create_random_solution(cities)
+        random_scores.append(calculate_fitness(sol))
+
+    r_best = min(random_scores)
+    r_mean = statistics.mean(random_scores)
+    r_stdev = statistics.stdev(random_scores)
+    r_variance = statistics.variance(random_scores)
+
+    print(f"   Done. Best Random: {r_best:.2f}")
+
+    # ---------------------------------------------------------
+    # 2. GREEDY ALGORITHM (ALL POSSIBLE STARTS)
+    # ---------------------------------------------------------
+    print("\n2. Running GREEDY ALGORITHM (All start nodes)...")
+    greedy_scores = []
+    for i in range(len(cities)):
+        # Her şehirden başlatıp sonucu kaydediyoruz
+        sol = solve_greedy(cities, start_index=i)
+        greedy_scores.append(calculate_fitness(sol))
+
+    g_best_5 = sorted(greedy_scores)[:5]  # En iyi 5 sonucu al
+    g_mean = statistics.mean(greedy_scores)
+    g_stdev = statistics.stdev(greedy_scores)
+    g_variance = statistics.variance(greedy_scores)
+
+    print(f"   Done. Best Greedy: {g_best_5[0]:.2f}")
+
+    # ---------------------------------------------------------
+    # 3. GENETIC ALGORITHM (10 RUNS)
+    # ---------------------------------------------------------
+    print("\n3. Running GENETIC ALGORITHM (10 Runs - This may take time)...")
+    ga_scores = []
+
+    # EN İYİ PARAMETRELERİNİ BURAYA GİR:
+    # Örnek: Pop=150, Iter=2000, Greedy=20, Mut=0.1
+    best_params = {
+        "pop_size": 150,
+        "iterations": 2000,
+        "greedy_count": 20,
+        "mutation_rate": 0.1,
+        "crossover_rate": 0.85
+    }
+
+    for run in range(1, 11):
+        print(f"   Run {run}/10...", end="\r")
+        # solve_tsp_genetic fonksiyonunu çağırıyoruz
+        _, best_score, _ = solve_tsp_genetic(cities, **best_params)
+        ga_scores.append(best_score)
+
+    print(f"   Done. Best GA: {min(ga_scores):.2f}            ")
+
+    ga_mean = statistics.mean(ga_scores)
+    ga_stdev = statistics.stdev(ga_scores)
+    ga_variance = statistics.variance(ga_scores)
+
+    # ---------------------------------------------------------
+    # 4. PRINTING THE TABLE
+    # ---------------------------------------------------------
+    print("\n" + "=" * 70)
+    print(f"{'METRIC':<25} | {'RANDOM (1000)':<15} | {'GREEDY (All)':<15} | {'GENETIC (10)':<15}")
+    print("-" * 70)
+    print(f"{'Best Score':<25} | {r_best:<15.2f} | {g_best_5[0]:<15.2f} | {min(ga_scores):<15.2f}")
+    print(f"{'Mean (Average)':<25} | {r_mean:<15.2f} | {g_mean:<15.2f} | {ga_mean:<15.2f}")
+    print(f"{'Standard Deviation':<25} | {r_stdev:<15.2f} | {g_stdev:<15.2f} | {ga_stdev:<15.2f}")
+    print(f"{'Variance':<25} | {r_variance:<15.2f} | {g_variance:<15.2f} | {ga_variance:<15.2f}")
+    print("-" * 70)
+
+    print("\n>>> DETAILED RESULTS FOR REPORT:")
+    print("Greedy Best 5 Results:", [f"{s:.2f}" for s in g_best_5])
+    print("Genetic Algorithm 10 Runs:", [f"{s:.2f}" for s in ga_scores])
+    print("=" * 70)
+
+
 # --- MAIN BLOCK: TESTING REQUIREMENTS ---
 if __name__ == "__main__":
 
@@ -393,6 +471,7 @@ if __name__ == "__main__":
         print("3. Part 3")
         print("4. Part 4")
         print("5. Part 5")
+        print("9. Part FINAL REPORT DATA GENERATOR")
         print("0. Exit")
         print("=" * 50)
 
@@ -715,8 +794,6 @@ if __name__ == "__main__":
                     print(f"Greedy Score : {greedy_score:.4f}")
                     print(f"Genetic Score: {final_score:.4f}")
 
-
-
                     diff = greedy_score - final_score
                     if  diff > 0 :
                         print(f"SUCCESS: Genetic Algorithm is better by {diff:.2f} points!")
@@ -739,8 +816,28 @@ if __name__ == "__main__":
                 if sehirler:
                     run_parameter_comparison(sehirler)
 
+        elif choice == "9":
+            print("\n" + "#" * 60)
+            print("     PART 3: FINAL STATISTICAL REPORT (ALL FILES)")
+            print("#" * 60)
 
+            # files_to_test listesindeki her dosya için sırayla işlem yap
+            for file_name in files_to_test:
+                print(f"\n\n>>> PROCESSING FILE: {file_name} <<<")
 
+                # 1. Dosyayı Yükle
+                sehirler = parse_tsp_file(file_name)
+
+                if not sehirler:
+                    print(f"Skipping {file_name} (Could not load).")
+                    continue
+
+                # 2. İstatistik Fonksiyonunu Çağır
+                # (Bu fonksiyonu bir önceki adımda koduna eklemiştik)
+                generate_final_report_stats(sehirler)
+
+                print(f">>> REPORT FOR {file_name} COMPLETED.")
+                print("-" * 60)
 
         elif choice == "0":
             print("Exiting the program ... Have a nice day")
