@@ -29,24 +29,24 @@ def parse_tsp_file(filename):
         return []
 
     try:
-        with open(filename, 'r') as file:
-            lines = file.readlines()
-            parsing = False
+        with open(filename, 'r') as file: #read the file
+            lines = file.readlines() # read the all of lines
+            parsing = False #close the parse
             for line in lines:
-                if "NODE_COORD_SECTION" in line:
+                if "NODE_COORD_SECTION" in line: # if see that command any line start
                     parsing = True
                     continue
-                if "EOF" in line:
+                if "EOF" in line: # if see that command any line stop
                     break
 
                 if parsing:
-                    parts = line.strip().split()
+                    parts = line.strip().split() # split the element 1. count 2.x coord 3. y coord
                     if len(parts) >= 3:
-                        new_city = City(parts[0], parts[1], parts[2])
-                        cities.append(new_city)
+                        new_city = City(parts[0], parts[1], parts[2]) #parts[0] parts[1] parts[2] = count x coord y coord
+                        cities.append(new_city) # added to cities list to new city
         print(f"SUCCESSFUL: Loaded {len(cities)} cities from file {filename}.")
         return cities
-    except Exception as e:
+    except Exception as e: #something wrong print error
         print(f"ERROR: {e}")
         return []
 
@@ -54,12 +54,12 @@ def parse_tsp_file(filename):
 def calculate_distance(city1, city2):
     x_farki = city1.x - city2.x
     y_farki = city1.y - city2.y
-    distance = math.sqrt(x_farki ** 2 + y_farki ** 2)
+    distance = math.sqrt(x_farki ** 2 + y_farki ** 2) #Pythagorean theorem
     return distance
 
 # --- MADDE 3 & 4: Solution Storage & Random Solution ---
 def create_random_solution(cities):
-    random_solution = random.sample(cities, len(cities))
+    random_solution = random.sample(cities, len(cities)) #random.sample means Permutation the random cities and cities lenght
     return random_solution
 
 # --- EXTRA (PART 2): Fitness Calculation ---
@@ -70,19 +70,19 @@ def calculate_fitness(solution):
     for i in range(num_cities):
         city_start = solution[i]
         city_end = solution[(i + 1) % num_cities]  # Döngüsel yol
-        total_distance += calculate_distance(city_start, city_end)
+        total_distance += calculate_distance(city_start, city_end) #Cumulative sum
     return total_distance
 
 #info
 def info(solution):
-    score = calculate_fitness(solution)
+    score = calculate_fitness(solution) #total distance = score
 
-    #converter to string
+    #element id convert int to str
     route_ids = [str(city.id) for city in solution]
-    route_str = " ".join(route_ids)
+    route_str = " ".join(route_ids) #adding space in the result (2 " " 3 " " 4)
 
     print(f"Solution Route: {route_str}")
-    print(f"Score(fitness): {score:.4f}")
+    print(f"Score(fitness): {score:.4f}") #:.4f = 0.1234 -how many number show after the dot?
 
 #greedy
 def solve_greedy(cities, start_index=0):
@@ -97,7 +97,7 @@ def solve_greedy(cities, start_index=0):
 
     # 2. choose your start city
     if start_index >= len(unvisited): start_index = 0
-    current_city = unvisited.pop(start_index)
+    current_city = unvisited.pop(start_index) # .pop You're completely removing that city from the equation.
     solution = [current_city]
 
     # 3. Turn around until all the cities are gone.
@@ -105,14 +105,14 @@ def solve_greedy(cities, start_index=0):
         closest_city = None
         min_distance = float("inf")
 
-        # --- ADIM A:Just find the NEAREST one. ---
+        # --- Part A:Just find the NEAREST one. ---
         for candidate in unvisited:
             dist = calculate_distance(current_city, candidate)
             if dist < min_distance:
                 min_distance = dist
                 closest_city = candidate
 
-        # --- ADIM B: Once you find it, GO and DELETE IT FROM THE LIST. ---
+        # --- Part B: Once you find it, GO and DELETE IT FROM THE LIST. ---
         if closest_city:
             current_city = closest_city
             solution.append(current_city)
@@ -124,20 +124,25 @@ def solve_greedy(cities, start_index=0):
 
 def create_population(cities , population_size):
     population = []
-    for _ in range(population_size):
+    for _ in range(population_size):# '_' değişklen önemsiz sadece döngünün dönmesini istiyoruz
         solution = create_random_solution(cities)
         population.append(solution)
     return population
 
+"""
+The `create_initial_population` function allows 
+me to add a specific number of Greedy individuals to the population.
+"""
 def create_initial_population(cities,pop_size,greedy_count = 0):
     population = []
     for i in range(greedy_count):
-        start_node_index = i%len(cities)
+        start_node_index = i%len(cities) #i%len(cities)   greedycount % len cities
         greedy_sol = solve_greedy(cities,start_index = start_node_index)
         population.append(greedy_sol)
 
     remaining_count = pop_size - greedy_count
     if remaining_count <0 : remaining_count = 0
+    # If we tell it to generate -5 solutions, it can't generate -5, so it will generate 0.
 
     for _ in range(remaining_count):
         random_sol = create_random_solution(cities)
@@ -178,7 +183,7 @@ def tournament_selection(population,tournament_size=5):
 
     #2. Find the best (shortest distance) candidate among the options.
     best_candidate = None
-    best_score = float('inf')
+    best_score = float('inf')  #float('inf') == positive infinite
 
     for candidate in candidates:
         score = calculate_fitness(candidate)
@@ -190,9 +195,10 @@ def tournament_selection(population,tournament_size=5):
 
 def ordered_crossover(parent1,parent2):
     size =len(parent1)
-    cut1,cut2 = sorted(random.sample(range(size),2))
+    cut1,cut2 = sorted(random.sample(range(size),2)) # sorted ignore the error to code
+    #cut1 8 cut2 2 is god is still work but cut1 2 cut2 8 it will be work to empty list
 
-    child = [None] * size
+    child = [None] * size  # child = [ NONE ,NONE ,NONE ,NONE] how many size
 
     child[cut1:cut2] = parent1[cut1:cut2]
 
@@ -212,6 +218,7 @@ def ordered_crossover(parent1,parent2):
 
 def inversion_mutation(solution,mutation_rate=0.1):
     #Roll the dice (a random number between 0.0 and 1.0)
+    # mutation_rate = there is a 10% chance that we will make a random change (mutation) in its genes.
     if random.random() < mutation_rate:
         #Make a copy so as not to alter the original list.
         mutated_sol = solution[:]
@@ -230,18 +237,24 @@ def inversion_mutation(solution,mutation_rate=0.1):
     return solution
 
 def create_new_generation(previous_population,mutation_rate=0.1,crossover_rate=0.8):
+    #previous_population = we select parent(mom and dad)
+    #crossover_rate = Theres an 80% chance we'll mix the parents genes and create a hybrid child. 20% same genes to parent
+    #mutation_rate = After the child is created, there is a 10% chance that we will make a random change (mutation) in its genes.
     new_population = []
     pop_size = len(previous_population)
 
     while len(new_population) < pop_size:
         parent1 = tournament_selection(previous_population , tournament_size=5)
         parent2 = tournament_selection(previous_population , tournament_size=5)
+        #Select 5 people from the population and choose the one
+        # with the shortest path (best) and assign it as "Parent".
 
         #selection
         if random.random() < crossover_rate:
             child = ordered_crossover(parent1,parent2)
         else:
-            child = parent1[:]
+            child = parent1[:] # [:] cloning to the list
+            #If I hadn’t used [:], the mutations I made on the child would also have changed the parent.
 
         #crossover
         if None in child:
@@ -258,10 +271,12 @@ def create_new_generation(previous_population,mutation_rate=0.1,crossover_rate=0
     return new_population
 
 def solve_tsp_genetic(cities, pop_size=100, iterations=3000, greedy_count=20, mutation_rate=0.1, crossover_rate=0.85):
+    #pop_size =number of pirates searching for treasure
+    #iterations = Epoch
 
     current_pop = create_initial_population(cities, pop_size, greedy_count)
 
-    best_solution = min(current_pop, key=calculate_fitness)
+    best_solution = min(current_pop, key=calculate_fitness) #`key` tells you which field you will be ranked by.
     best_score = calculate_fitness(best_solution)
     fitness_history = [best_score]
 
@@ -286,15 +301,15 @@ def plot_results(history , best_route):
         return
 
     #1. Graph: Learning Curve (Score vs Epoch)
-    plt.figure(figsize=(12,5))
+    plt.figure(figsize=(12,5)) #like a empyt paper 12,5 size
 
     # Left side: Scoreboard
-    plt.subplot(1,2,1)
+    plt.subplot(1,2,1) #row column sequence number
     plt.plot(history)
     plt.title("Genetic Algorithm Convergence")
     plt.xlabel("Epoch(Generation)")
     plt.ylabel("Best Score (Distance)")
-    plt.grid(True)
+    plt.grid(True) #Add grid lines behind the graph.
 
     #2.Graphic: Route Map (Cities and Roads)
     plt.subplot(1,2,2)
@@ -311,21 +326,21 @@ def plot_results(history , best_route):
     plt.title(f"Best Route Found (score : {calculate_fitness(best_route):.2f})")
 
     for city in best_route:
-        plt.annotate(str(city.id), (city.x, city.y))
+        plt.annotate(str(city.id), (city.x, city.y)) #Write a note/sticker on the dot.
 
-    plt.tight_layout()
+    plt.tight_layout() #Set everything to automatic, ensure text doesn't overlap, and make sure margins are neat.
     plt.show()
 
 # --- TASK 20
 def run_parameter_comparison(cities):
     if not HAS_MATPLOTLIB:
-        print("Matplotlib eksik, grafik çizilemez.")
+        print("Matplotlib is missing. Skipping graphs.")
         return
 
     scenarios = {"Low Mutation (1%)": 0.01, "Normal Mutation (10%)": 0.1, "High Mutation (50%)": 0.5}
     plt.figure(figsize=(10, 6))
     print("\n--- COMPARISON STARTED ---")
-    for name, m_rate in scenarios.items():
+    for name, m_rate in scenarios.items(): # name Low Mutation (1%)| m_rate 0.01
         print(f"Running scenario: {name} ...")
 
         _, final_score, history = solve_tsp_genetic(
@@ -342,7 +357,7 @@ def run_parameter_comparison(cities):
     plt.title("Impact of Mutation Rate on Convergence")
     plt.xlabel("Epochs")
     plt.ylabel("Best Score (Distance)")
-    plt.legend()
+    plt.legend() # It's the box in the corner of the graph that says "Which color line is which?".
     plt.grid(True)
 
     print("Displaying Comparison Chart...")
@@ -365,9 +380,9 @@ def generate_final_report_stats(cities):
         random_scores.append(calculate_fitness(sol))
 
     r_best = min(random_scores)
-    r_mean = statistics.mean(random_scores)
-    r_stdev = statistics.stdev(random_scores)
-    r_variance = statistics.variance(random_scores)
+    r_mean = statistics.mean(random_scores) # You made 1000 attempts. You add up all the scores and divide by 1000.
+    r_stdev = statistics.stdev(random_scores) #Standard Deviation  It shows how much the data deviates from the average.
+    r_variance = statistics.variance(random_scores) # It is the square of the standard deviation (s^2).
 
     print(f"   Done. Best Random: {r_best:.2f}")
 
@@ -533,7 +548,8 @@ if __name__ == "__main__":
                         best_start_node = -1
 
                         for i in range(len(sehirler)):
-                            current_greedy = solve_greedy(sehirler, start_index=i)
+                            current_greedy = solve_greedy(sehirler, start_index=i) #start_index = i It tries everything
+                            # in turn as a starting point.
                             score = calculate_fitness(current_greedy)
                             print(f"\n--- Start Node Index: {i} ---")
                             info(current_greedy)
