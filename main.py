@@ -69,7 +69,7 @@ def calculate_fitness(solution):
 
     for i in range(num_cities):
         city_start = solution[i]
-        city_end = solution[(i + 1) % num_cities]  # Döngüsel yol
+        city_end = solution[(i + 1) % num_cities]  #Returning from the last city of the list to the first city
         total_distance += calculate_distance(city_start, city_end) #Cumulative sum
     return total_distance
 
@@ -108,8 +108,8 @@ def solve_greedy(cities, start_index=0):
         # --- Part A:Just find the NEAREST one. ---
         for candidate in unvisited:
             dist = calculate_distance(current_city, candidate)
-            if dist < min_distance:
-                min_distance = dist
+            if dist < min_distance: # Daha iyisini bulduk mu
+                min_distance = dist #Evet bulduk, o zaman yeni rekor bu olsun
                 closest_city = candidate
 
         # --- Part B: Once you find it, GO and DELETE IT FROM THE LIST. ---
@@ -165,7 +165,7 @@ def info_population(population):
 
     # 3. Median calculation (Middle value)
     sorted_scores = sorted(scores)
-    mid_index = len(scores) // 2
+    mid_index = len(scores) // 2 # 10//2 = 5     10%2 = 0     We need the index in the middle
     median_score = sorted_scores[mid_index]
 
     print(f"Population Size : {len(population)}")
